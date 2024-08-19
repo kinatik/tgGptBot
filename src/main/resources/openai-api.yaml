@@ -1,0 +1,159 @@
+openapi: 3.0.1
+info:
+  title: OpenAI API
+  version: 1.0.0
+servers:
+  - url: https://api.openai.com
+tags:
+  - name: Chat
+    description: Chat completion API
+paths:
+  /v1/chat/completions:
+    post:
+      summary: Chat completion
+      operationId: chatCompletion
+      description: |
+        Retrieve a completion for the given prompt.
+      requestBody:
+        description: The prompt to complete.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompletionsRequest'
+      responses:
+        '200':
+          description: A completion for the given prompt.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompletionsResponse'
+        '400':
+          description: Bad request parameters
+        '500':
+          description: Server error
+
+components:
+  schemas:
+    CompletionsRequest:
+      type: object
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+        model:
+          type: string
+          enum:
+            - "gpt-4o-mini"
+            - "gpt-4o"
+            - "gpt-4-turbo"
+            - "gpt-4"
+            - "gpt-3.5-turbo"
+          default: "gpt-3.5-turbo"
+        frequency_penalty:
+          type: number
+          default: 0.0
+          minimum: -2.0
+          maximum: 2.0
+        max_tokens:
+          type: integer
+          default: null
+        presence_penalty:
+          type: number
+          default: 0.0
+          minimum: -2.0
+          maximum: 2.0
+        temperature:
+          type: number
+          default: 0.7
+          minimum: 0.0
+          maximum: 2.0
+        top_p:
+          type: number
+          example: 1.0
+        user:
+          type: string
+
+    CompletionsResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        choices:
+          type: array
+          items:
+            $ref: '#/components/schemas/Choice'
+        created:
+          type: integer
+        model:
+          type: string
+        service_tier:
+          type: string
+        system_fingerprint:
+          type: string
+        object:
+          type: string
+        usage:
+          type: object
+          properties:
+            completion_tokens:
+              type: integer
+            prompt_tokens:
+              type: integer
+            total_tokens:
+              type: integer
+
+    Message:
+      type: object
+      properties:
+        role:
+          enum:
+            - "system"
+            - "user"
+            - "assistant"
+            - "tool"
+            - "function"
+          example: "system"
+        refusal:
+          type: boolean
+          example: false
+        content:
+          type: string
+          example: "Hello, how can I help you today?"
+
+    Choice:
+      type: object
+      properties:
+        finish_reason:
+          type: string
+        index:
+          type: integer
+        message:
+          $ref: '#/components/schemas/Message'
+        logprobs:
+          type: object
+          properties:
+            content:
+              type: array
+              items:
+                $ref: '#/components/schemas/Logprob'
+
+    Logprob:
+      type: object
+      properties:
+        token:
+          type: string
+        logprob:
+          type: number
+        bytes:
+          type: array
+          items:
+            type: integer
+        top_logprobs:
+          type: array
+          items:
+            $ref: '#/components/schemas/Logprob'
+
+
+

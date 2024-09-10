@@ -12,6 +12,8 @@ import ru.novik.tggptbot.CompletionService;
 import ru.novik.tggptbot.TgGptBot;
 import ru.novik.tggptbot.properties.BotProperty;
 
+import java.util.ArrayList;
+
 @Component
 @Slf4j
 public class ReplyExecutor implements CommandExecutor {
@@ -37,19 +39,34 @@ public class ReplyExecutor implements CommandExecutor {
         Message message = update.getMessage();
         Long chatId = message.getChatId();
         Message messageToDelete = sendMessage(chatId, botProperty.getMessagePleaseWait());
-        String call = completionService.call(chatId, message.getText());
+        String text = completionService.call(chatId, message.getText());
         deleteMessage(chatId, messageToDelete.getMessageId());
-        if (call.length() > MAX_MESSAGE_LENGTH) {
+        textToMessage(text, chatId);
+        if (text.length() > MAX_MESSAGE_LENGTH) {
             int start = 0;
             int end = MAX_MESSAGE_LENGTH;
-            while (start < call.length()) {
-                sendMessage(chatId, call.substring(start, end));
+            while (start < text.length()) {
+                sendMessage(chatId, text.substring(start, end));
                 start = end;
-                end = Math.min(start + MAX_MESSAGE_LENGTH, call.length());
+                end = Math.min(start + MAX_MESSAGE_LENGTH, text.length());
             }
         } else {
-            sendMessage(chatId, call);
+            sendMessage(chatId, text);
         }
+
+    }
+
+    private SendMessage textToMessage(String text, Long chatId) {
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText(text);
+        message.setEntities(new ArrayList<>());
+
+
+
+
+
+        return message;
 
     }
 
@@ -66,6 +83,7 @@ public class ReplyExecutor implements CommandExecutor {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
         message.setText(text);
+        message.enableHtml(true);
         try {
             return tgGptBot.execute(message);
         } catch (TelegramApiException e) {

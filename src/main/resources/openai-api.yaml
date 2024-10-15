@@ -32,6 +32,34 @@ paths:
           description: Bad request parameters
         '500':
           description: Server error
+  /v1/images/generations:
+    post:
+      summary: Image generation
+      operationId: imageGeneration
+      description: |
+          Generate an image from the given text.
+      requestBody:
+        description: The text to generate an image from.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ImageGenerationRequest'
+      responses:
+        '200':
+          description: An image generated from the given text.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageGenerationResponse'
+        '400':
+          description: Bad request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
 
 components:
   schemas:
@@ -103,6 +131,17 @@ components:
               type: integer
             total_tokens:
               type: integer
+            completion_tokens_details:
+              type: object
+              properties:
+                reasoning_tokens:
+                  type: integer
+            prompt_tokens_details:
+                type: object
+                properties:
+                  cached_tokens:
+                    type: integer
+
 
     Message:
       type: object
@@ -155,5 +194,88 @@ components:
           items:
             $ref: '#/components/schemas/Logprob'
 
+    ImageGenerationRequest:
+      type: object
+      properties:
+        prompt:
+          type: string
+        model:
+          type: string
+          default: dall-e-3
+          enum:
+            - dall-e-2
+            - dall-e-3
+        n:
+          type: integer
+          default: 1
+          minimum: 1
+          maximum: 10
+        quality:
+          type: string
+          default: standard
+          enum:
+              - standard
+              - hd
+        response_format:
+          type: string
+          default: b64_json
+          enum:
+              - url
+              - b64_json
+        size:
+          type: string
+          default: 1792x1024
+          enum:
+              - 256x256
+              - 512x512
+              - 1024x1024
+              - 1792x1024
+              - 1024x1792
+        style:
+          type: string
+          default: null
+          enum:
+            - vivid
+            - natural
+        user:
+          type: string
+          default: null
 
 
+    ImageGenerationResponse:
+      type: object
+      properties:
+        created:
+          type: integer
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ImageData'
+
+    ImageData:
+      type: object
+      properties:
+        b64_json:
+          type: string
+          default: null
+        url:
+          type: string
+          default: null
+        revised_prompt:
+          type: string
+          default: null
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            param:
+              type: string
+            type:
+              type: string

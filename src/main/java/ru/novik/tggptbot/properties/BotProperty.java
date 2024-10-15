@@ -20,6 +20,8 @@ public class BotProperty {
     private String messageNotAllowedChatIdReply;
     private String messageStartCommandReply;
     private String messagePleaseWait;
+    private String messagePleaseWaitImage;
+    private Set<String> generateImageKeywords;
 }
 
 
